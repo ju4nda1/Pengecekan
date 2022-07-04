@@ -1,0 +1,160 @@
+@extends('index')
+@section('child.content')
+    <!-- Content Header (Page header) -->
+    <section class="content-header">
+        <div class="container-fluid">
+            <div class="row mb-2">
+                <div class="col-sm-6">
+                    <h1>{{ $judul }}</h1>
+                </div>
+                <div class="col-sm-6">
+                    <ol class="breadcrumb float-sm-right">
+                        <li class="breadcrumb-item"><a href="#">{{ $subt }}</a></li>
+                        <li class="breadcrumb-item active">{{ $sub_judul }}</li>
+                    </ol>
+                </div>
+            </div>
+        </div><!-- /.container-fluid -->
+    </section>
+
+    <section class="content">
+        <div class="container-fluid ">
+            <div class="row">
+                <!-- left column -->
+                <div class="col-md-12">
+                    <!-- general form elements -->
+                    <div class="card card-primary">
+                        <div class="card-header">
+                            <h3 class="card-title"></h3>
+                        </div>
+                        <!-- /.card-header -->
+                        <!-- form start -->
+                        <form class="form-horizontal" role="form" action="{{ route('barangdibeli.store') }}"
+                            method="POST" enctype="multipart/form-data">
+                            @csrf
+                            <div class="card-body">
+                                <input type="text" class="form-contrzol" id="exampleInputEmail1"
+                                    placeholder="Nama Barang" name="codeinvo"
+                                    value="{{ Date('His') . sprintf('%03s', $codes) }}" hidden>
+                                <div class="form-group">
+                                    <label for="exampleInputPassword1">Nama Pembeli</label>
+                                    <div class="col-md-12">
+                                        <select class="form-control select2" id="exampleInputEmail1" name="name">
+                                            <option>-- Pilih Nama Pembeli --</option>
+                                            @foreach ($namapembeli as $pem)
+                                                <option value="{{ $pem->id }}">{{ $pem->name }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                </div>
+                                <table class="order-list">
+                                    <thead>
+                                        <tr>
+                                            <td>Nama Barang</td>
+                                            <td>Jumlah Barang</td>
+                                            <td>Harga Barang</td>
+                                            <td>Total</td>
+                                        </tr>
+                                    </thead>
+
+                                    <tbody>
+                                        <tr>
+                                            <td><select class="form-control select2" name="id_barang">
+                                                    <option>-- Pilih Jenis Barang --</option>
+                                                    @foreach ($barang as $bar)
+                                                        <option value="{{ $bar->id }}">{{ $bar->name }}</option>
+                                                    @endforeach
+                                                </select></td>
+                                            <td><input type="number" class="form-control" name="qty" /></td>
+                                            <td><input type="number" class="form-control" name="harga" /></td>
+                                            <td><input type="number" class="form-control" name="total"
+                                                    readonly="readonly" /></td>
+                                            {{-- <td><a class="deleteRow btn btn-danger"><i class="fa fa-trash"></i> </a></td> --}}
+                                        </tr>
+                                    </tbody>
+
+                                    <tfoot>
+                                        <tr>
+                                            <td>
+                                                <button type="button" id="addrow" class="btn btn-primary"><i
+                                                        class="fa fa-plus-circle"></i> Tambah Jenis
+                                                    Barang</button>
+                                            </td>
+
+                                        </tr>
+
+                                    </tfoot>
+                                </table>
+                            </div>
+                            <!-- /.card-body -->
+
+                            <div class="card-footer">
+                                <button type="submit" class="btn btn-primary" >Submit</button>
+                            </div>
+                        </form>
+                    </div>
+                    <!-- /.card -->
+
+                </div>
+                <!--/.col (right) -->
+            </div>
+            <!-- /.row -->
+        </div><!-- /.container-fluid -->
+
+    </section>
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.5/jquery.min.js"></script>
+
+
+    <script>
+        $(function() {
+            //Initialize Select2 Elements
+            $('.select2').select2()
+        })
+    </script>
+
+    <script>
+        $(document).ready(function() {
+            var counter = 1;
+
+            $("#addrow").on("click", function() {
+                counter++;
+
+                var newRow = $("<tr>");
+                var cols = "";
+
+                cols += '<td><select class="form-control select2" name="id_barang"><option>-- Pilih Jenis Barang --</option>@foreach ($barang as $bar)<option value="{{ $bar->id }}">{{ $bar->name }}</option>@endforeach</select></td>';
+                cols += '<td><input type="number" class="form-control" name="qty"/></td>';
+                cols += '<td><input type="number" class="form-control" name="harga"/></td>';
+                cols += '<td><input type="number" class="form-control" name="total" readonly="readonly"/></td>';
+                cols += '<td><input type="number" class="form-control" name="name" value="15" hidden/></td>';
+                cols += '<td><input type="text" class="form-contrzol" id="exampleInputEmail1" placeholder="Nama Barang" name="codeinvo" value="{{ Date('His') . sprintf('%03s', $codes) }}" hidden></td>';
+                cols += '<td><a class="deleteRow btn btn-danger"><i class="fa fa-trash"></i> </a></td>';
+                newRow.append(cols);
+
+                $("table.order-list").append(newRow);
+            });
+
+            $("table.order-list").on("change", 'input[name^="qty"], input[name^="harga"]', function(event) {
+                calculateRow($(this).closest("tr"));
+            });
+
+            $("table.order-list").on("click", "a.deleteRow", function(event) {
+                $(this).closest("tr").remove();
+            });
+        });
+
+        function calculateRow(row) {
+            var qty = +row.find('input[name^="qty"]').val();
+            var harga = +row.find('input[name^="harga"]').val();
+            row.find('input[name^="total"]').val((qty * harga).toFixed(2));
+        }
+
+        // function calculateGrandTotal() {
+        //     var grandTotal = 0;
+        //     $("table.order-list").find('input[name^="total"]').each(function() {
+        //         grandTotal += +$(this).val();
+        //     });
+        //     $("#grandtotal").text(grandTotal.toFixed(2));
+        // }
+    </script>
+@endsection
